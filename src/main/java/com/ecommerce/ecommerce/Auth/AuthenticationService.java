@@ -26,7 +26,6 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest request){
         Optional<Role> role = roleRepository.findById(request.getRoleID());
-        System.out.println(role);
 
         if(role.isEmpty()){
             throw new RuntimeException("Role not found");
@@ -40,7 +39,6 @@ public class AuthenticationService {
                 .role(role.get())
                 .build();
 
-        System.out.println("inside here");
         userRepository.save(user);
         var JwtToken = jwtService.generateToken(user);
 
@@ -59,10 +57,6 @@ public class AuthenticationService {
 
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            throw new RuntimeException("Password is incorrect");
-        }
 
         var JwtToken = jwtService.generateToken(user);
 

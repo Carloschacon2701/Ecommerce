@@ -24,7 +24,7 @@ public class JWTConfigurationFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
 
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(

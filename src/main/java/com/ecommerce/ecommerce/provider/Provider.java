@@ -1,6 +1,7 @@
 package com.ecommerce.ecommerce.provider;
 
 
+import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.products.Product;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -15,17 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Provider {
-
-    @Id
-    @GeneratedValue()
-    private Long id;
-    private String name;
-    private String email;
-
-    @OneToMany(mappedBy = "provider")
-    @JsonIgnore
-    private List<Product> products;
+public class Provider extends User {
 
 
 }

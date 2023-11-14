@@ -4,10 +4,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.SneakyThrows;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.KeyGenerator;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,13 +19,14 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    private static final String PRIVATE_KEY = "sJFSSyvvTfRllbJkYBy66XoEAxULKHy1";
+    private static final String PRIVATE_KEY = "0f007edf46c6ce64640ed8347b921b66295807d3d89b3d0ac37b655bc2d3ebcb";
 
     public <T> T extractClaim(String token, Function<Claims, T>claimsResolver){
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
+    @SneakyThrows
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder().setSigningKey(getSingInKey()).build().parseClaimsJws(token).getBody();
     }
@@ -39,7 +43,8 @@ public class JWTService {
         return extractExpiration(token).before(new Date());
     }
 
-    private Key getSingInKey() {
+
+    private Key getSingInKey()  {
         byte[] keyBytes = Decoders.BASE64.decode(PRIVATE_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
