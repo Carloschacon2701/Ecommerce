@@ -14,9 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
-    @PostMapping(path = "/register")
-    public ResponseEntity<AuthenticationResponse>register(@RequestBody RegisterRequest request){
+    @PostMapping(path = "/register/client")
+    public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody ClientRegisterRequest request){
+        return ResponseEntity.ok(authenticationService.register(request));
+    }
 
+    @PostMapping(path = "/register/provider")
+    public ResponseEntity<AuthenticationResponse> registerProvider(@RequestBody ProviderRegisterRequest request){
         return ResponseEntity.ok(authenticationService.register(request));
     }
 

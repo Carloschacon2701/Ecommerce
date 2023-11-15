@@ -21,8 +21,8 @@ public class EcommerceApplication {
 	@Bean
 	public CommandLineRunner commandLineRunner(RoleRepository roleRepository) {
 		return args -> {
-			roleRepository.save(new Role("USER"));
-			roleRepository.save(new Role("ADMIN"));
+			roleRepository.save(new Role("PROVIDER"));
+			roleRepository.save(new Role("CLIENT"));
 		};
 	}
 

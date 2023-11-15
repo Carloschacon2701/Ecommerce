@@ -1,10 +1,10 @@
 package com.ecommerce.ecommerce.Auth;
 
-import com.ecommerce.ecommerce.Role.Role;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequest {

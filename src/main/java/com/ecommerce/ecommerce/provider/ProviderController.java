@@ -38,18 +38,4 @@ public class ProviderController {
         }
     }
 
-    @PostMapping
-    public ResponseEntity<?> createProvider(@RequestBody Provider provider){
-        Optional<Provider> existByEmail = providerService.findByEmail(provider.getEmail());
-        if(existByEmail.isPresent())
-            return new ResponseEntity<>("Provider with email " + provider.getEmail() + " already exists", HttpStatus.BAD_REQUEST);
-        if(provider.getName() == null || provider.getName().isEmpty())
-            return new ResponseEntity<>("Provider name cannot be null or empty", HttpStatus.BAD_REQUEST);
-        if(provider.getEmail() == null || provider.getEmail().isEmpty())
-            return new ResponseEntity<>("Provider email cannot be null or empty", HttpStatus.BAD_REQUEST);
-
-
-        return new ResponseEntity<>(providerService.addProvider(provider), HttpStatus.CREATED);
-    }
-
 }
