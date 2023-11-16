@@ -30,6 +30,7 @@ public class Provider extends User {
     private Integer bank_account;
 
     @OneToMany(mappedBy = "provider")
+    @JsonIgnore
     private List<Product> products;
 
 

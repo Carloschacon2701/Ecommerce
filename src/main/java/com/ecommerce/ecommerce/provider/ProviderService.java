@@ -25,7 +25,7 @@ public class ProviderService {
         return this.providerRepository.findAll();
     }
 
-    public Optional<Provider> getProviderById(Long id){
+    public Optional<Provider> getProviderById(Integer id){
         return this.providerRepository.findById(id);
     }
 

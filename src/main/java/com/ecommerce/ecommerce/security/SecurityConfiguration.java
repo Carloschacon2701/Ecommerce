@@ -25,6 +25,7 @@ public class SecurityConfiguration {
         return  http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("POST","/api/v1/products/**").hasRole("PROVIDER")
                         .anyRequest().authenticated()
                 ).sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)

@@ -1,12 +1,13 @@
 package com.ecommerce.ecommerce.products;
 
+import com.ecommerce.ecommerce.provider.Provider;
+import com.ecommerce.ecommerce.provider.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,10 +16,12 @@ import java.util.Optional;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProviderService providerService;
 
     @Autowired
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ProviderService providerService) {
         this.productService = productService;
+        this.providerService = providerService;
     }
 
     @GetMapping
@@ -26,9 +29,14 @@ public class ProductController {
         return  this.productService.getAllProducts();
     }
 
-    @PostMapping
+    @PostMapping(path = "/add")
     public ResponseEntity<String> addProduct(@RequestBody Product product){
         Optional<Product> existByName= productService.findByName(product.getName());
+        Optional<Provider> existProvider = providerService.getProviderById(product.getProvider().getProviderId());
+
+        if(!existProvider.isPresent())
+            return ResponseEntity.badRequest().body("Provider with id " + product.getProvider().getProviderId() + " does not exist");
+
         if(existByName.isPresent())
             return ResponseEntity.badRequest().body("Product with name " + product.getName() + " already exists");
         if(product.getName() == null || product.getName().isEmpty())
@@ -36,6 +44,8 @@ public class ProductController {
         if(product.getPrice() <= 0) {
            return ResponseEntity.badRequest().body("Product price cannot be less than or equal to 0");
         }
+
+        existProvider.get().getProducts().add(product);
 
         productService.addProduct(product);
         return ResponseEntity.ok("Product added successfully");
