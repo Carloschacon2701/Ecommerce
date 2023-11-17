@@ -2,6 +2,9 @@ package com.ecommerce.ecommerce.Auth;
 
 import com.ecommerce.ecommerce.Client.Client;
 import com.ecommerce.ecommerce.Client.ClientRepository;
+import com.ecommerce.ecommerce.DTO.ClientRegisterRequest;
+import com.ecommerce.ecommerce.DTO.ProviderRegisterRequest;
+import com.ecommerce.ecommerce.DTO.RegisterRequest;
 import com.ecommerce.ecommerce.JWT.JWTService;
 import com.ecommerce.ecommerce.Role.Role;
 import com.ecommerce.ecommerce.Role.RoleRepository;
@@ -43,7 +46,7 @@ public class AuthenticationService {
                     .builder()
                     .email(clientRequest.getEmail())
                      .lastName(clientRequest.getLastName())
-                        .firstName(clientRequest.getFirstName())
+                     .firstName(clientRequest.getFirstName())
                     .password(passwordEncoder.encode(clientRequest.getPassword()))
                     .role(role)
                     .phoneNumber(clientRequest.getPhoneNumber())

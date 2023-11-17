@@ -3,6 +3,8 @@ package com.ecommerce.ecommerce.products;
 import com.ecommerce.ecommerce.provider.Provider;
 import com.ecommerce.ecommerce.provider.ProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,10 +53,28 @@ public class ProductController {
         return ResponseEntity.ok("Product added successfully");
     }
 
-    @PostMapping(path = "/product-image")
-    public ResponseEntity<?> uploadProductImage(@RequestBody MultipartFile file) throws IOException {
-        System.out.println(file.getOriginalFilename());
-        return ResponseEntity.ok("Image uploaded successfully");
+    @PutMapping(path = "/{productID}/product-image")
+    public ResponseEntity<?> uploadProductImage(@RequestParam("image") MultipartFile file, @PathVariable Integer productID)  {
+        try{
+            String uploadImage = productService.uploadProductImage(file,productID);
+            return ResponseEntity.ok("Image uploaded successfully");
+
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
+
+    @GetMapping(path = "/{id}/image")
+    public ResponseEntity<?> getProductById(@PathVariable("id") Integer id) throws Exception {
+        Product productOptional = this.productService.getProductById(id);
+
+        if(productOptional.getFilePath() == null){
+            return ResponseEntity.badRequest().body("Image not found");
+        }
+
+        byte[] imageData = this.productService.getProductImage(id);
+        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("image/png")).body(imageData);
 
     }
 

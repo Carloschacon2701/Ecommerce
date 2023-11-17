@@ -1,6 +1,8 @@
 package com.ecommerce.ecommerce.Auth;
 
 
+import com.ecommerce.ecommerce.DTO.ClientRegisterRequest;
+import com.ecommerce.ecommerce.DTO.ProviderRegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

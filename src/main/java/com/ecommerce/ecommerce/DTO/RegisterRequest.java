@@ -1,4 +1,4 @@
-package com.ecommerce.ecommerce.Auth;
+package com.ecommerce.ecommerce.DTO;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;

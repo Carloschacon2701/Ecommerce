@@ -1,4 +1,4 @@
-package com.ecommerce.ecommerce.Auth;
+package com.ecommerce.ecommerce.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,8 +11,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ClientRegisterRequest extends RegisterRequest{
-
-    private String address;
-    private String phoneNumber;
+public class ProviderRegisterRequest extends RegisterRequest{
+    private Integer bank_account;
 }
