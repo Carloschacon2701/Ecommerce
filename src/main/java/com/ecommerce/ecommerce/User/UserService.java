@@ -1,40 +1,43 @@
 package com.ecommerce.ecommerce.User;
+
 import com.ecommerce.ecommerce.Client.Client;
 import com.ecommerce.ecommerce.Client.ClientRepository;
 import com.ecommerce.ecommerce.provider.Provider;
 import com.ecommerce.ecommerce.provider.ProviderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.security.Principal;
 
 @Service
-public class UserService implements UserDetailsService {
+@RequiredArgsConstructor
+public class UserService{
 
-    @Autowired
-    private  ClientRepository clientRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private ProviderRepository providerRepository;
+    private final ProviderRepository providerRepository;
+    private final ClientRepository clientRepository;
 
+    public void changePassword(ChangePasswordRequest request, Principal connectedUser){
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Client> clientOptional = clientRepository.findByEmail(username);
-
-        if(clientOptional.isPresent()){
-            return clientOptional.get();
-        }else{
-            Optional<Provider> providerOptional = providerRepository.findByEmail(username);
-
-            if(providerOptional.isPresent()){
-                return providerOptional.get();
-            }else{
-                throw new UsernameNotFoundException("User not found");
-            }
+        if(!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())){
+            throw new IllegalStateException("Wrong password");
         }
+
+        if(!request.getNewPassword().equals(request.getConfirmationPassword())){
+            throw new IllegalStateException("Passwords don't match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        if(user instanceof Client){
+            clientRepository.save((Client) user);
+        }else{
+            providerRepository.save((Provider) user);
+        }
+
     }
+
 }

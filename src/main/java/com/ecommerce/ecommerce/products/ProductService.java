@@ -76,9 +76,7 @@ public class ProductService  {
             throw new Exception("No image found for product with id " + id);
         }
 
-        byte[] fileContent = Files.readAllBytes(new File(filePath).toPath());
-
-        return fileContent;
+        return Files.readAllBytes(new File(filePath).toPath());
     }
 
 }

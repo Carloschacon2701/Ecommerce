@@ -17,10 +17,6 @@ public class ProviderService {
         this.providerRepository = providerRepository;
     }
 
-    public Provider addProvider(Provider provider){
-        return this.providerRepository.save(provider);
-    }
-
     public List<Provider> getAllProviders(){
         return this.providerRepository.findAll();
     }

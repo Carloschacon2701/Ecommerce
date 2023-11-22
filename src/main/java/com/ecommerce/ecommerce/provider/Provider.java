@@ -3,7 +3,7 @@ package com.ecommerce.ecommerce.provider;
 
 import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.products.Product;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,8 +30,6 @@ public class Provider extends User {
     private Integer bank_account;
 
     @OneToMany(mappedBy = "provider")
-    @JsonIgnore
+    @JsonManagedReference
     private List<Product> products;
-
-
 }

@@ -20,8 +20,7 @@ public class ProviderController {
         this.providerService = providerService;
     }
 
-    @RequestMapping(path = "/all")
-    @GetMapping()
+    @GetMapping(path = "/all")
     public List<Provider> getProviders(){
         return this.providerService.getAllProviders();
     }

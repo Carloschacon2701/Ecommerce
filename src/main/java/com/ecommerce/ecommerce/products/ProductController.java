@@ -47,7 +47,6 @@ public class ProductController {
            return ResponseEntity.badRequest().body("Product price cannot be less than or equal to 0");
         }
 
-        existProvider.get().getProducts().add(product);
 
         productService.addProduct(product);
         return ResponseEntity.ok("Product added successfully");

@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 public class SecurityErrorHandler {
 
     @ExceptionHandler({AccessDeniedException.class})
-    public ResponseEntity<Object> handleAccessDeniedException(Exception ex){
+    public ResponseEntity<?> handleAccessDeniedException(Exception ex){
         return new ResponseEntity<Object>(
                 "You don't have permission to access this resource",
                 new HttpHeaders(),
@@ -25,9 +25,9 @@ public class SecurityErrorHandler {
     }
 
     @ExceptionHandler({BadCredentialsException.class})
-    public ResponseEntity<Object> handleBadCredentialsException(Exception ex){
-        return  new ResponseEntity<Object>(
-                new ErrorMessage(ex.getMessage(),new Date(System.currentTimeMillis())),
+    public ResponseEntity<?> handleBadCredentialsException(Exception ex){
+        return new ResponseEntity<>(
+                new ErrorMessage(ex.getMessage(), new Date(System.currentTimeMillis())),
                 new HttpHeaders(),
                 BAD_REQUEST
         );
