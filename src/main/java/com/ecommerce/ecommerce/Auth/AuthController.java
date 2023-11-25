@@ -3,6 +3,7 @@ package com.ecommerce.ecommerce.Auth;
 
 import com.ecommerce.ecommerce.DTO.ClientRegisterRequest;
 import com.ecommerce.ecommerce.DTO.ProviderRegisterRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,12 +18,12 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     @PostMapping(path = "/register/client")
-    public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody ClientRegisterRequest request){
+    public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody @Valid ClientRegisterRequest request){
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
     @PostMapping(path = "/register/provider")
-    public ResponseEntity<AuthenticationResponse> registerProvider(@RequestBody ProviderRegisterRequest request){
+    public ResponseEntity<AuthenticationResponse> registerProvider(@RequestBody @Valid ProviderRegisterRequest request){
         return ResponseEntity.ok(authenticationService.register(request));
     }
 

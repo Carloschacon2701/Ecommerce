@@ -24,11 +24,11 @@ public class UserService{
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
         if(!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())){
-            throw new IllegalStateException("Wrong password");
+            throw new RuntimeException("Wrong password");
         }
 
         if(!request.getNewPassword().equals(request.getConfirmationPassword())){
-            throw new IllegalStateException("Passwords don't match");
+            throw new RuntimeException("Passwords don't match");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

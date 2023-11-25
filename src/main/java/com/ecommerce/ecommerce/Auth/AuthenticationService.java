@@ -31,14 +31,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
 
-    public Role checkRole(Integer role_id){
-        return roleRepository.findById(role_id).orElseThrow(
-                () -> new RuntimeException("Role not found")
-        );
-    }
-
     public AuthenticationResponse register(RegisterRequest request){
-        Role role = checkRole(request.getRoleID());
         User user;
 
         if(request instanceof ClientRegisterRequest clientRequest){
@@ -48,7 +41,7 @@ public class AuthenticationService {
                      .lastName(clientRequest.getLastName())
                      .firstName(clientRequest.getFirstName())
                     .password(passwordEncoder.encode(clientRequest.getPassword()))
-                    .role(role)
+                    .role(roleRepository.findById(2).get())
                     .phoneNumber(clientRequest.getPhoneNumber())
                     .address(clientRequest.getAddress())
                     .build();
@@ -61,7 +54,7 @@ public class AuthenticationService {
                         .lastName(providerRequest.getLastName())
                     .email(providerRequest.getEmail())
                     .password(passwordEncoder.encode(providerRequest.getPassword()))
-                    .role(role)
+                    .role(roleRepository.findById(1).get())
                      .bank_account(providerRequest.getBank_account())
                     .build();
             providerRepository.save((Provider) user);
