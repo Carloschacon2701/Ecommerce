@@ -2,12 +2,14 @@ package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
 import com.ecommerce.ecommerce.Client.Client;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,13 +26,14 @@ public class Cart {
 
     private Long TotalAmountToPay;
 
-    @OneToOne(mappedBy = "cart")
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
     private Client client;
 
 
     @OneToMany(mappedBy = "cart")
-    private Set<CartItem> cartItems;
+    @JsonManagedReference
+    private List<CartItem> cartItems;
 
     @PostLoad
     public void calculateTotalAmountToPay() {

@@ -28,8 +28,4 @@ public class Client extends User {
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
-    @OneToOne
-    @JoinColumn(name = "cart_id")
-    private Cart cart;
-
 }
