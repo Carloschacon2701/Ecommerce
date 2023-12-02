@@ -4,6 +4,7 @@ import com.ecommerce.ecommerce.CartItem.CartItem;
 import com.ecommerce.ecommerce.CartItem.CartItemRepository;
 import com.ecommerce.ecommerce.Client.Client;
 import com.ecommerce.ecommerce.Client.ClientRepository;
+import com.ecommerce.ecommerce.DTO.CartItemToAdd;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class CartService {
     }
 
     @Transactional
-    public Cart addNewItemToCart(CartItem cartItem, Principal connectedUser) {
+    public Cart addNewItemToCart(CartItemToAdd cartItemToAdd, Principal connectedUser) {
         var user = (Client) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
         Client client = clientRepository.findById(user.getClientId()).orElseThrow();
@@ -36,6 +37,14 @@ public class CartService {
             cartRepository.save(newCart);
             return newCart;
         });
+
+        System.out.println(cart);
+
+
+         var cartItem = CartItem.builder()
+            .product(cartItemToAdd.getProduct())
+            .quantity(cartItemToAdd.getQuantity())
+            .build();
 
         cartItem.setCart(cart);
 

@@ -1,7 +1,10 @@
 package com.ecommerce.ecommerce.products;
 
+import com.ecommerce.ecommerce.DTO.ProductToAdd;
+import com.ecommerce.ecommerce.provider.Provider;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,16 +31,19 @@ public class ProductService  {
         return this.productRepository.findAll();
     }
 
-    public Product getProductById(Integer id){
-        return this.productRepository.findById(id).orElseThrow(() -> new IllegalStateException("Product with id " + id + " does not exist"));
-    }
+    public Product addProduct(ProductToAdd product){
+        Optional<Product> existByName= productRepository.findByName(product.getName());
 
-    public void addProduct(Product product){
-         this.productRepository.save(product);
-    }
+        if(existByName.isPresent())
+            throw new RuntimeException("Product with name " + product.getName() + " already exists");
 
-    public Optional<Product> findByName(String name){
-        return this.productRepository.findByName(name);
+        Product newProduct = Product.builder()
+                .name(product.getName())
+                .price(product.getPrice())
+                .provider(product.getProvider())
+                .build();
+
+       return this.productRepository.save(newProduct);
     }
 
     @Transactional
@@ -68,14 +74,13 @@ public class ProductService  {
 
     public byte[] getProductImage(Integer id) throws Exception {
         Product product = productRepository.findById(id).orElseThrow(
-                () -> new Exception("Product with id " + id + " does not exist")
+                () -> new RuntimeException("Product with id " + id + " does not exist")
         );
 
         String filePath = product.getFilePath();
         if (filePath == null || filePath.isEmpty()) {
-            throw new Exception("No image found for product with id " + id);
+            throw new RuntimeException("No image found for product with id " + id);
         }
-
         return Files.readAllBytes(new File(filePath).toPath());
     }
 

@@ -28,7 +28,6 @@ public class ProviderController {
     @GetMapping(path = "{id}")
     public ResponseEntity<?> getProviderById(@PathVariable("id") Integer id) {
         Optional<Provider> providerOptional = providerService.getProviderById(id);
-        System.out.println("fix");
 
         if (providerOptional.isPresent()) {
             Provider provider = providerOptional.get();

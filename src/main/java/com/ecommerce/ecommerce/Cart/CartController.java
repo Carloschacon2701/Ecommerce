@@ -1,6 +1,9 @@
 package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
+import com.ecommerce.ecommerce.DTO.CartItemToAdd;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -15,11 +18,12 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/add")
-    public Cart addNewItemToCart(Principal conectUser, @RequestBody CartItem cartItem) {
-        return cartService.addNewItemToCart(cartItem, conectUser);
-
+    @PostMapping("/add-item")
+    public ResponseEntity<?> addNewItemToCart(Principal connectUser, @RequestBody @Valid CartItemToAdd cartItem) {
+        return ResponseEntity.ok(cartService.addNewItemToCart(cartItem, connectUser));
     }
+
+
 
     @GetMapping("")
     public Cart getCart(Principal connectedUser) {

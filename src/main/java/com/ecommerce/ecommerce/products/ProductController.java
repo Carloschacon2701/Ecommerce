@@ -1,7 +1,9 @@
 package com.ecommerce.ecommerce.products;
 
+import com.ecommerce.ecommerce.DTO.ProductToAdd;
 import com.ecommerce.ecommerce.provider.Provider;
 import com.ecommerce.ecommerce.provider.ProviderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,24 +34,12 @@ public class ProductController {
     }
 
     @PostMapping(path = "/add")
-    public ResponseEntity<String> addProduct(@RequestBody Product product){
-        Optional<Product> existByName= productService.findByName(product.getName());
-        Optional<Provider> existProvider = providerService.getProviderById(product.getProvider().getProviderId());
+    public ResponseEntity<?> addProduct(@RequestBody @Valid ProductToAdd product){
+        return new ResponseEntity(
+                productService.addProduct(product),
+                HttpStatus.CREATED
+        );
 
-        if(!existProvider.isPresent())
-            return ResponseEntity.badRequest().body("Provider with id " + product.getProvider().getProviderId() + " does not exist");
-
-        if(existByName.isPresent())
-            return ResponseEntity.badRequest().body("Product with name " + product.getName() + " already exists");
-        if(product.getName() == null || product.getName().isEmpty())
-            return ResponseEntity.badRequest().body("Product name cannot be null or empty");
-        if(product.getPrice() <= 0) {
-           return ResponseEntity.badRequest().body("Product price cannot be less than or equal to 0");
-        }
-
-
-        productService.addProduct(product);
-        return ResponseEntity.ok("Product added successfully");
     }
 
     @PutMapping(path = "/{productID}/product-image")
@@ -66,14 +56,8 @@ public class ProductController {
 
     @GetMapping(path = "/{id}/image")
     public ResponseEntity<?> getProductById(@PathVariable("id") Integer id) throws Exception {
-        Product productOptional = this.productService.getProductById(id);
 
-        if(productOptional.getFilePath() == null){
-            return ResponseEntity.badRequest().body("Image not found");
-        }
-
-        byte[] imageData = this.productService.getProductImage(id);
-        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("image/png")).body(imageData);
+        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.valueOf("image/png")).body(this.productService.getProductImage(id));
 
     }
 

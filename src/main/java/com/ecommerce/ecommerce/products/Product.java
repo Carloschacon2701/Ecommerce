@@ -3,7 +3,10 @@ package com.ecommerce.ecommerce.products;
 import com.ecommerce.ecommerce.provider.Provider;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,12 +15,16 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table
+@Builder
 public class Product {
 
     @Id
     @GeneratedValue()
     private Integer id;
+
+    @Column(unique = true)
     private String name;
+
     private double price;
 
     private String FilePath;
