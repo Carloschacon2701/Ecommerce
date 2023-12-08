@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
@@ -57,6 +55,7 @@ public class ErrorHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleException(RuntimeException ex){
+
         return new ResponseEntity<>(
                 new ErrorMessage(ex.getMessage(), new Date(System.currentTimeMillis())),
                 new HttpHeaders(),
@@ -64,3 +63,6 @@ public class ErrorHandler {
         );
     }
 }
+
+
+

@@ -1,6 +1,7 @@
 package com.ecommerce.ecommerce.CartItem;
 
 import com.ecommerce.ecommerce.Cart.Cart;
+import com.ecommerce.ecommerce.Status.Status;
 import com.ecommerce.ecommerce.products.Product;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -35,6 +36,9 @@ public class CartItem {
     @JoinColumn(name = "cart_id")
     @JsonBackReference
     private Cart cart;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @PostLoad
     public void calculateTotalPrice() {

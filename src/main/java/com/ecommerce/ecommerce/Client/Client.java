@@ -28,4 +28,5 @@ public class Client extends User {
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
+
 }

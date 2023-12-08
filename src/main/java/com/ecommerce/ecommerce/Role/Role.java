@@ -1,5 +1,6 @@
 package com.ecommerce.ecommerce.Role;
 
+import com.ecommerce.ecommerce.User.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.jackson2.SimpleGrantedAuthorityMixin;
