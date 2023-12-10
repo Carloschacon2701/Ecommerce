@@ -3,6 +3,7 @@ package com.ecommerce.ecommerce.Cart;
 import com.ecommerce.ecommerce.CartItem.CartItem;
 import com.ecommerce.ecommerce.CartItem.CartItemRepository;
 import com.ecommerce.ecommerce.DTO.CartItemToAdd;
+import com.ecommerce.ecommerce.Status.Status;
 import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.User.UserRepository;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class CartService {
@@ -40,13 +43,33 @@ public class CartService {
 
          var cartItem = CartItem.builder()
             .product(cartItemToAdd.getProduct())
-            .quantity(cartItemToAdd.getQuantity())
+            .quantity(cartItemToAdd.getQuantity()).status(Status.PENDING)
             .build();
 
         cartItem.setCart(cart);
 
         return cartItemRepository.save(cartItem);
     }
+
+    public List<CartItem> payItems(Principal connectedUser, Set<Integer> itemsToPay ) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        var BDUser = userRepository.findByEmail(user.getEmail()).orElseThrow();
+
+        var cart = cartRepository.findByClient(BDUser).orElseThrow();
+
+        var cartItems = cartItemRepository.findAllByCart(cart);
+
+        cartItems.forEach(cartItem -> {
+            if (itemsToPay.contains(cartItem.getItemId())) {
+                cartItem.setStatus(Status.PAID);
+            }
+        });
+
+        return cartItemRepository.saveAll(cartItems);
+
+    }
+
+
 
     public Cart getCart(Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();

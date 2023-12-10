@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Set;
 
 @RestController
 @RequestMapping(path = "api/v1/cart")
@@ -21,6 +22,11 @@ public class CartController {
     @PostMapping("/add-item")
     public ResponseEntity<?> addNewItemToCart(Principal connectUser, @RequestBody @Valid CartItemToAdd cartItem) {
         return ResponseEntity.ok(cartService.addNewItemToCart(cartItem, connectUser));
+    }
+
+    @PutMapping("/pay-items")
+    public ResponseEntity<?> payItems(Principal connectUser, @RequestBody Set<Integer> itemsToPay) {
+        return ResponseEntity.ok(cartService.payItems(connectUser, itemsToPay));
     }
 
 

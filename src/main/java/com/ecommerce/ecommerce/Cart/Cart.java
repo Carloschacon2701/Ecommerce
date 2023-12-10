@@ -2,6 +2,8 @@ package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
 import com.ecommerce.ecommerce.User.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,9 +28,9 @@ public class Cart {
     private Long TotalAmountToPay;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User client;
-
 
     @OneToMany(mappedBy = "cart")
     @JsonManagedReference
@@ -36,6 +38,11 @@ public class Cart {
 
     @PostLoad
     public void calculateTotalAmountToPay() {
-        this.TotalAmountToPay = this.cartItems.stream().mapToLong(CartItem::getTotalPrice).sum();
+        this.TotalAmountToPay = this.cartItems.stream().mapToLong(cartItem ->{
+            if(cartItem.getStatus().equals("PENDING"))
+                return cartItem.getTotalPrice();
+            else
+                return 0L;
+        }).sum();
     }
 }
