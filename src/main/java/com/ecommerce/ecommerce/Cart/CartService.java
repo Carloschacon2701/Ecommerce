@@ -2,15 +2,14 @@ package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
 import com.ecommerce.ecommerce.CartItem.CartItemRepository;
-import com.ecommerce.ecommerce.Client.Client;
-import com.ecommerce.ecommerce.Client.ClientRepository;
 import com.ecommerce.ecommerce.DTO.CartItemToAdd;
+import com.ecommerce.ecommerce.User.User;
+import com.ecommerce.ecommerce.User.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.Set;
 
 @Service
 public class CartService {
@@ -18,28 +17,26 @@ public class CartService {
 
     private final CartItemRepository cartItemRepository;
 
-    private final ClientRepository clientRepository;
+    private final UserRepository userRepository;
 
-    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, ClientRepository clientRepository) {
+    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, UserRepository userRepository){
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
-        this.clientRepository = clientRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public Cart addNewItemToCart(CartItemToAdd cartItemToAdd, Principal connectedUser) {
-        var user = (Client) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    public CartItem addNewItemToCart(CartItemToAdd cartItemToAdd, Principal connectedUser) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
-        Client client = clientRepository.findById(user.getClientId()).orElseThrow();
+        var UserFromDB = userRepository.findByEmail(user.getEmail()).orElseThrow(
+                () -> new RuntimeException("Error adding carItem. User not found")
+        );
 
-        var cart = cartRepository.findByClient(user).orElseGet(() -> {
-            Cart newCart =  Cart.builder().client(client).build();
-            cartRepository.save(newCart);
-            return newCart;
+        var cart = cartRepository.findByClient(UserFromDB).orElseGet(() -> {
+            Cart newCart =  Cart.builder().client(UserFromDB).build();
+            return cartRepository.save(newCart);
         });
-
-        System.out.println(cart);
-
 
          var cartItem = CartItem.builder()
             .product(cartItemToAdd.getProduct())
@@ -48,13 +45,11 @@ public class CartService {
 
         cartItem.setCart(cart);
 
-        cartItemRepository.save(cartItem);
-
-        return cart;
+        return cartItemRepository.save(cartItem);
     }
 
     public Cart getCart(Principal connectedUser) {
-        var user = (Client) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         return cartRepository.findByClient(user).orElseThrow();
     }
 

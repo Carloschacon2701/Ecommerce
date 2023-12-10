@@ -24,7 +24,6 @@ public class CartController {
     }
 
 
-
     @GetMapping("")
     public Cart getCart(Principal connectedUser) {
         return cartService.getCart(connectedUser);

@@ -1,8 +1,11 @@
 package com.ecommerce.ecommerce.User;
+import com.ecommerce.ecommerce.Cart.Cart;
 import com.ecommerce.ecommerce.Role.Role;
 import com.ecommerce.ecommerce.Token.Token;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -15,9 +18,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@SuperBuilder
-@MappedSuperclass
+@Builder
+@Entity
+@Table(name = "users")
 public class User  implements UserDetails {
+    @Id
+    @GeneratedValue
+    private Integer id;
 
     private String email;
 
@@ -27,12 +34,20 @@ public class User  implements UserDetails {
 
     private String password;
 
+    private String address;
+
+    private Integer phoneNumber;
+
+    private Integer bankAccount;
+
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<Token> tokens;
+
 
     @Override
     @Transient
@@ -71,5 +86,16 @@ public class User  implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @OneToOne(mappedBy = "client", optional = false)
+    private Cart cart;
+
+    public Cart getCart() {
+        return cart;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 }

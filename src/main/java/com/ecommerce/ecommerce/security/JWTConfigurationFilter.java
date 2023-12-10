@@ -1,13 +1,13 @@
 package com.ecommerce.ecommerce.security;
 
 import com.ecommerce.ecommerce.JWT.JWTService;
+import com.ecommerce.ecommerce.Token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +25,8 @@ public class JWTConfigurationFilter extends OncePerRequestFilter {
     private final JWTService jwtService;
 
     private final UserDetailsService userDetailsService;
+
+    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -47,7 +49,11 @@ public class JWTConfigurationFilter extends OncePerRequestFilter {
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if(jwtService.IsTokenValid(jwt, userDetails)){
+            var isTokenValid = tokenRepository.findByToken(jwt)
+                    .map(token -> !token.isExpired() && !token.isRevoked())
+                    .orElse(false);
+
+            if(jwtService.IsTokenValid(jwt, userDetails) && isTokenValid){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

@@ -1,10 +1,8 @@
 package com.ecommerce.ecommerce.products;
 
-import com.ecommerce.ecommerce.provider.Provider;
+import com.ecommerce.ecommerce.User.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +30,6 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "provider_id")
     @JsonBackReference
-    private Provider provider;
+    private User provider;
 
 }

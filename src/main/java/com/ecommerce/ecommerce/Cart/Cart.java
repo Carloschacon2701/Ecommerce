@@ -1,7 +1,7 @@
 package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
-import com.ecommerce.ecommerce.Client.Client;
+import com.ecommerce.ecommerce.User.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "cart")
@@ -28,7 +27,7 @@ public class Cart {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
-    private Client client;
+    private User client;
 
 
     @OneToMany(mappedBy = "cart")

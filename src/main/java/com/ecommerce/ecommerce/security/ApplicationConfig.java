@@ -1,11 +1,7 @@
 package com.ecommerce.ecommerce.security;
 
-import com.ecommerce.ecommerce.Client.Client;
-import com.ecommerce.ecommerce.Client.ClientRepository;
-import com.ecommerce.ecommerce.provider.Provider;
-import com.ecommerce.ecommerce.provider.ProviderRepository;
+import com.ecommerce.ecommerce.User.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,25 +19,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final ClientRepository clientRepository;
-
-    private final ProviderRepository providerRepository;
+    private final UserRepository userRepository;
 
     @Bean
     public UserDetailsService userDetailsService(){
-        return username -> {
-            Optional<Client> clientOptional = this.clientRepository.findByEmail(username);
-            if (clientOptional.isPresent()) {
-                return clientOptional.get();
-            } else {
-                Optional<Provider> providerOptional = this.providerRepository.findByEmail(username);
-                if (providerOptional.isPresent()) {
-                    return providerOptional.get();
-                } else {
-                    throw new UsernameNotFoundException("User not found");
-                }
-            }
-        };
+        return username -> userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Bean

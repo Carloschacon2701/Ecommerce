@@ -1,8 +1,8 @@
 package com.ecommerce.ecommerce.Purchase;
 
 
-import com.ecommerce.ecommerce.Client.Client;
 import com.ecommerce.ecommerce.Status.Status;
+import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.products.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class Purchase {
 
     @ManyToOne
     @JoinColumn(name = "client_id")
-    private Client client;
+    private User client;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
