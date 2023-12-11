@@ -51,7 +51,7 @@ public class CartService {
         return cartItemRepository.save(cartItem);
     }
 
-    public List<CartItem> payItems(Principal connectedUser, Set<Integer> itemsToPay ) {
+    public List<CartItem> payItems(Principal connectedUser, List<Integer> itemsToPay ) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         var BDUser = userRepository.findByEmail(user.getEmail()).orElseThrow();
 

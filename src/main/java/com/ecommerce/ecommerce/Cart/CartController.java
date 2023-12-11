@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -25,7 +26,8 @@ public class CartController {
     }
 
     @PutMapping("/pay-items")
-    public ResponseEntity<?> payItems(Principal connectUser, @RequestBody Set<Integer> itemsToPay) {
+    public ResponseEntity<?> payItems(Principal connectUser, @RequestBody List<Integer> itemsToPay) {
+        System.out.println(itemsToPay);
         return ResponseEntity.ok(cartService.payItems(connectUser, itemsToPay));
     }
 

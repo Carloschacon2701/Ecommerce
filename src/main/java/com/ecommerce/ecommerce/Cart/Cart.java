@@ -1,6 +1,7 @@
 package com.ecommerce.ecommerce.Cart;
 
 import com.ecommerce.ecommerce.CartItem.CartItem;
+import com.ecommerce.ecommerce.Status.Status;
 import com.ecommerce.ecommerce.User.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -38,11 +39,8 @@ public class Cart {
 
     @PostLoad
     public void calculateTotalAmountToPay() {
-        this.TotalAmountToPay = this.cartItems.stream().mapToLong(cartItem ->{
-            if(cartItem.getStatus().equals("PENDING"))
-                return cartItem.getTotalPrice();
-            else
-                return 0L;
-        }).sum();
+        this.TotalAmountToPay = this.cartItems.stream()
+                .filter(cartItem -> cartItem.getStatus().equals(Status.PENDING))
+                .mapToLong(CartItem::getTotalPrice).sum();
     }
 }
