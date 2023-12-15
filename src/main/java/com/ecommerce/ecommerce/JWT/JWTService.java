@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +20,20 @@ import java.util.function.Function;
 @Service
 public class JWTService {
 
-    private static final String PRIVATE_KEY = "0f007edf46c6ce64640ed8347b921b66295807d3d89b3d0ac37b655bc2d3ebcb";
+    @Value("${application.security.jwt.secret-key}")
+    private String  secretKey ;
+
+    @Value("${application.security.jwt.expiration}")
+    private Long jwtExpiration;
+
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private Long refreshTokenExpiration;
 
     public <T> T extractClaim(String token, Function<Claims, T>claimsResolver){
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    @SneakyThrows
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder().setSigningKey(getSingInKey()).build().parseClaimsJws(token).getBody();
     }
@@ -45,7 +52,7 @@ public class JWTService {
 
 
     private Key getSingInKey()  {
-        byte[] keyBytes = Decoders.BASE64.decode(PRIVATE_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -57,11 +64,19 @@ public class JWTService {
             Map<String, Object> extraClaims,
             UserDetails userDetails
     ){
+        return buildToken(extraClaims, userDetails, jwtExpiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails){
+        return buildToken(new HashMap<>(), userDetails, refreshTokenExpiration);
+    }
+
+    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 *24))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSingInKey())
                 .compact();
     }

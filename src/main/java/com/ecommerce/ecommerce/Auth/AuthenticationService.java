@@ -8,13 +8,21 @@ import com.ecommerce.ecommerce.Token.TokenRepository;
 import com.ecommerce.ecommerce.Token.TokenType;
 import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.User.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Optional;
 
 
@@ -43,12 +51,15 @@ public class AuthenticationService {
 
        var savedUser = userRepository.save(user);
 
-        var JwtToken = jwtService.generateToken(user);
+        var JwtToken = jwtService.generateToken(savedUser);
+        var refreshToken = jwtService.generateRefreshToken(savedUser);
+
         saveUserToken(savedUser, JwtToken);
 
         return AuthenticationResponse
                 .builder()
-                .authenticationToken(JwtToken)
+                .accessToken(JwtToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
@@ -63,12 +74,15 @@ public class AuthenticationService {
                 () -> new UsernameNotFoundException("User not found"));
 
         var JwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
         revokeAllUserTokens(user);
         saveUserToken(user, JwtToken);
 
         return  AuthenticationResponse
                 .builder()
-                .authenticationToken(JwtToken)
+                .accessToken(JwtToken)
+                .refreshToken(refreshToken)
                 .build();
 
     }
@@ -99,5 +113,40 @@ public class AuthenticationService {
     }
 
 
+    public void refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String username;
 
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return;
+        }
+
+        refreshToken = authHeader.substring(7);
+        username = jwtService.extractUsername(refreshToken);
+
+        if(username != null){
+            var user = this.userRepository.findByEmail(username).orElseThrow(
+                    () -> new UsernameNotFoundException("User not found")
+            );
+
+            if(jwtService.IsTokenValid(refreshToken, user)){
+                var accessToken = jwtService.generateToken(user);
+
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+
+                var authResponse = AuthenticationResponse.builder()
+                        .refreshToken(refreshToken)
+                        .accessToken(accessToken)
+                        .build();
+
+                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+            }
+        }
+
+    }
 }

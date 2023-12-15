@@ -1,0 +1,27 @@
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecommerce
+    username: carlos
+    password: Daniel2701*
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+
+application:
+  security:
+    jwt:
+      secret-key: 0f007edf46c6ce64640ed8347b921b66295807d3d89b3d0ac37b655bc2d3ebcb
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
+
+
+
+
