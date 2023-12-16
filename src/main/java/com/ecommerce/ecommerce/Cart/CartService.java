@@ -69,6 +69,12 @@ public class CartService {
 
     }
 
+    public String deleteItemsFromCart(Principal connectedUser, List<Integer> itemsToDelete) {
+        cartItemRepository.deleteAllById(itemsToDelete);
+        return "Items deleted successfully";
+
+    }
+
 
 
     public Cart getCart(Principal connectedUser) {
