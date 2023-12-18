@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 
 
@@ -63,33 +64,38 @@ public class AuthenticationService {
                 .build();
     }
 
-    public AuthenticationResponse googleAuth(GoogleAuthRequest request)  {
+    public AuthenticationResponse googleAuth(GoogleAuthRequest request) throws GeneralSecurityException, IOException {
         String idTokenRequest = request.getIdToken();
 
-        try{
             GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenRequest);
+            User user;
+
             if (idToken != null) {
                 GoogleIdToken.Payload payload = idToken.getPayload();
 
-                System.out.println(payload);
+                user = userRepository.findByEmail(payload.getEmail()).orElseGet(() -> {
+                    var newUser = User.builder()
+                            .email(payload.getEmail())
+                            .firstName((String) payload.get("given_name"))
+                            .lastName((String) payload.get("family_name"))
+                            .password(passwordEncoder.encode("password"))
+                            .address(request.getAddress())
+                            .phoneNumber(request.getPhoneNumber())
+                            .bankAccount(request.getBankAccount())
+                            .role(roleRepository.findByRoleId(2).get())
+                            .build();
 
-                // Print user identifier
-                String userId = payload.getSubject();
-                System.out.println("User ID: " + userId);
+                    return userRepository.save(newUser);
+                });
 
-                // Get profile information from payload
-                String email = payload.getEmail();
-                boolean emailVerified = payload.getEmailVerified();
-                String name = (String) payload.get("name");
-                String pictureUrl = (String) payload.get("picture");
-                String locale = (String) payload.get("locale");
-                String familyName = (String) payload.get("family_name");
-                String givenName = (String) payload.get("given_name");
+            }else{
+                throw new RuntimeException("Invalid token");
             }
 
-            var accessToken = jwtService.generateToken(new HashMap<>(), new User());
-            var refreshToken = jwtService.generateRefreshToken(new User());
-            saveUserToken(new User(), accessToken);
+            var accessToken = jwtService.generateToken(user);
+            var refreshToken = jwtService.generateRefreshToken(user);
+            revokeAllUserTokens(user);
+            saveUserToken(user, accessToken);
 
             return AuthenticationResponse
                     .builder()
@@ -97,9 +103,7 @@ public class AuthenticationService {
                     .refreshToken(refreshToken)
                     .build();
 
-         }catch (Exception e){
-            throw new RuntimeException(e.getMessage());
-        }
+
 
     }
 

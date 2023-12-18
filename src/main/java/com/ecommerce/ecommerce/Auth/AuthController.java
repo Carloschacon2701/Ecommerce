@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 @RestController
 @RequestMapping(path = "/api/v1/auth")
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping(path ="/oauth2/google")
-    public ResponseEntity<AuthenticationResponse> googleAuth(@RequestBody GoogleAuthRequest request){
+    public ResponseEntity<AuthenticationResponse> googleAuth(@RequestBody GoogleAuthRequest request) throws GeneralSecurityException, IOException {
         return ResponseEntity.ok(authenticationService.googleAuth(request));
     }
 
