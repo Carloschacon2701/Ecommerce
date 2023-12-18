@@ -11,7 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: false
+    show-sql: true
 
 
 application:
@@ -21,6 +21,8 @@ application:
       expiration: 86400000
       refresh-token:
         expiration: 604800000
+    oauth2:
+      googleClientID: 125332911005-4imduhd2uphsejvraug14ni8cucfj53u.apps.googleusercontent.com
 
 
 

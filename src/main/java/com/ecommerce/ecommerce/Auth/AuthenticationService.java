@@ -9,21 +9,20 @@ import com.ecommerce.ecommerce.Token.TokenType;
 import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.User.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.HashMap;
 
 
 @Service
@@ -36,6 +35,7 @@ public class AuthenticationService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     public AuthenticationResponse register(RegisterRequest request, Integer Role_id){
         var user = User.builder()
@@ -61,6 +61,46 @@ public class AuthenticationService {
                 .accessToken(JwtToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    public AuthenticationResponse googleAuth(GoogleAuthRequest request)  {
+        String idTokenRequest = request.getIdToken();
+
+        try{
+            GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenRequest);
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+
+                System.out.println(payload);
+
+                // Print user identifier
+                String userId = payload.getSubject();
+                System.out.println("User ID: " + userId);
+
+                // Get profile information from payload
+                String email = payload.getEmail();
+                boolean emailVerified = payload.getEmailVerified();
+                String name = (String) payload.get("name");
+                String pictureUrl = (String) payload.get("picture");
+                String locale = (String) payload.get("locale");
+                String familyName = (String) payload.get("family_name");
+                String givenName = (String) payload.get("given_name");
+            }
+
+            var accessToken = jwtService.generateToken(new HashMap<>(), new User());
+            var refreshToken = jwtService.generateRefreshToken(new User());
+            saveUserToken(new User(), accessToken);
+
+            return AuthenticationResponse
+                    .builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+         }catch (Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
+
     }
 
     public AuthenticationResponse auth(AuthRequest request){

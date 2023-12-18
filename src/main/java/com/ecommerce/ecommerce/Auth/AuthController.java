@@ -35,6 +35,11 @@ public class AuthController {
         return ResponseEntity.ok(authenticationService.auth(request));
     }
 
+    @PostMapping(path ="/oauth2/google")
+    public ResponseEntity<AuthenticationResponse> googleAuth(@RequestBody GoogleAuthRequest request){
+        return ResponseEntity.ok(authenticationService.googleAuth(request));
+    }
+
     @PostMapping(path = "/refresh-token")
     public void refreshToken(
             HttpServletRequest request,

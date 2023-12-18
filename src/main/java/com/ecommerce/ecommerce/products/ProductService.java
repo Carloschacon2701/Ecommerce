@@ -1,13 +1,12 @@
 package com.ecommerce.ecommerce.products;
 
-import com.ecommerce.ecommerce.DTO.ProductToAdd;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.ecommerce.ecommerce.DTO.ProductToAdd;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
