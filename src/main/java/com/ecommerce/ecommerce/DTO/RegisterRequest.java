@@ -40,5 +40,9 @@ public class RegisterRequest {
     @Min(value = 1, message = "Bank account must be greater than 0")
     private Integer bankAccount;
 
+    @NotNull(message = "Role ID is required")
+    @Pattern(regexp = "^[1-2]$", message = "Role ID must be 1 or 2")
+    private Integer roleID;
+
 
 }

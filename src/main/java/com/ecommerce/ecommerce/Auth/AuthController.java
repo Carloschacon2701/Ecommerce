@@ -2,10 +2,13 @@ package com.ecommerce.ecommerce.Auth;
 
 
 import com.ecommerce.ecommerce.DTO.RegisterRequest;
+import com.ecommerce.ecommerce.DTO.TokenRequest;
+import com.ecommerce.ecommerce.JWT.JWTService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,31 +24,20 @@ import java.security.GeneralSecurityException;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
-    @PostMapping(path = "/register/client")
-    public ResponseEntity<AuthenticationResponse> registerClient(@RequestBody @Valid RegisterRequest request){
-        return ResponseEntity.ok(authenticationService.register(request, 2));
+    private final JWTService jwtService;
+
+    @PostMapping(path = "/register/cognito")
+    public ResponseEntity<?> registerCognito(@RequestBody RegisterRequest request){
+        return ResponseEntity.ok(authenticationService.signUp(request));
     }
 
-    @PostMapping(path = "/register/provider")
-    public ResponseEntity<AuthenticationResponse> registerProvider(@RequestBody @Valid RegisterRequest request){
-        return ResponseEntity.ok(authenticationService.register(request, 1));
+    @PostMapping(path="/login/cognito")
+    public ResponseEntity<?> loginCognito(@RequestBody @Valid AuthRequest request){
+        return ResponseEntity.ok(authenticationService.initiateAuth(request));
     }
 
-    @PostMapping(path = "/authenticate")
-    public ResponseEntity<AuthenticationResponse>auth(@RequestBody AuthRequest request){
-        return ResponseEntity.ok(authenticationService.auth(request));
-    }
-
-    @PostMapping(path ="/oauth2/google")
-    public ResponseEntity<AuthenticationResponse> googleAuth(@RequestBody GoogleAuthRequest request) throws GeneralSecurityException, IOException {
-        return ResponseEntity.ok(authenticationService.googleAuth(request));
-    }
-
-    @PostMapping(path = "/refresh-token")
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        authenticationService.refreshToken(request, response);
+    @PostMapping(path="/getClaims")
+    public ResponseEntity<?> getClaims(@RequestBody TokenRequest request){
+        return ResponseEntity.ok(jwtService.getClaims(request.getToken()));
     }
 }

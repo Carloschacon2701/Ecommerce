@@ -1,13 +1,19 @@
 package com.ecommerce.ecommerce.JWT;
 
+import com.ecommerce.ecommerce.DTO.TokenRequest;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.GetUserResponse;
 
 import javax.crypto.KeyGenerator;
 import java.security.Key;
@@ -18,72 +24,45 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JWTService {
 
-    @Value("${application.security.jwt.secret-key}")
-    private String  secretKey ;
+    private final CognitoIdentityProviderClient cognitoIdentityProviderClient;
 
-    @Value("${application.security.jwt.expiration}")
-    private Long jwtExpiration;
-
-    @Value("${application.security.jwt.refresh-token.expiration}")
-    private Long refreshTokenExpiration;
-
-    public <T> T extractClaim(String token, Function<Claims, T>claimsResolver){
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    public  String extractClaim(String token, String claim){
+        final Map<String, String> claims = getClaims(token);
+        return  claims.get(claim);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSingInKey()).build().parseClaimsJws(token).getBody();
+    public Map<String, String> getClaims(String token) {
+        Map<String, String> claims = new HashMap<>();
+        try {
+
+            GetUserRequest authRequest = GetUserRequest.builder()
+                    .accessToken(token)
+                    .build();
+
+            GetUserResponse response = cognitoIdentityProviderClient.getUser(authRequest);
+
+            response.userAttributes().forEach(attributeType -> {
+                claims.put(attributeType.name(), attributeType.value());
+            });
+
+            return claims;
+
+        } catch(CognitoIdentityProviderException e) {
+            throw new RuntimeException(e.awsErrorDetails().errorMessage());
+        }
+
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    private Date extractExpiration(String token){
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    public boolean isTokenExpired(String token){
-        return extractExpiration(token).before(new Date());
-    }
-
-
-    private Key getSingInKey()  {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public String generateToken(UserDetails userDetails){
-            return generateToken(new HashMap<>(), userDetails);
-    }
-
-    public String generateToken (
-            Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ){
-        return buildToken(extraClaims, userDetails, jwtExpiration);
-    }
-
-    public String generateRefreshToken(UserDetails userDetails){
-        return buildToken(new HashMap<>(), userDetails, refreshTokenExpiration);
-    }
-
-    private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
-        return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSingInKey())
-                .compact();
+        return extractClaim(token, "email");
     }
 
     public boolean IsTokenValid(String token, UserDetails userDetails){
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (username.equals(userDetails.getUsername()));
     }
 
 

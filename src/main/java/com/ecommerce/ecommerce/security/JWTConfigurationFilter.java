@@ -1,7 +1,6 @@
 package com.ecommerce.ecommerce.security;
 
 import com.ecommerce.ecommerce.JWT.JWTService;
-import com.ecommerce.ecommerce.Token.TokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +25,6 @@ public class JWTConfigurationFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
 
-    private final TokenRepository tokenRepository;
 
     @Override
     protected void doFilterInternal(
@@ -49,11 +47,7 @@ public class JWTConfigurationFilter extends OncePerRequestFilter {
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            var isTokenValid = tokenRepository.findByToken(jwt)
-                    .map(token -> !token.isExpired() && !token.isRevoked())
-                    .orElse(false);
-
-            if(jwtService.IsTokenValid(jwt, userDetails) && isTokenValid){
+            if(jwtService.IsTokenValid(jwt, userDetails)){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,

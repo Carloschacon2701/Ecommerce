@@ -17,12 +17,15 @@ spring:
 application:
   security:
     jwt:
-      secret-key: 0f007edf46c6ce64640ed8347b921b66295807d3d89b3d0ac37b655bc2d3ebcb
+      secret-key: 2mn6/VO+HaJ0HlAPWWNSGwmwJYzr23ZGBcTDu3WCDzw=
       expiration: 86400000
       refresh-token:
         expiration: 604800000
     oauth2:
       googleClientID: 125332911005-4imduhd2uphsejvraug14ni8cucfj53u.apps.googleusercontent.com
+    cognito:
+      clientID: 60ju9142ci98161a0mn83n140
+      poolID: us-east-2_QWtoiZGIi
 
 
 

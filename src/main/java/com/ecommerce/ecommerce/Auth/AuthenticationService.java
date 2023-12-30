@@ -1,196 +1,99 @@
 package com.ecommerce.ecommerce.Auth;
 
 import com.ecommerce.ecommerce.DTO.RegisterRequest;
-import com.ecommerce.ecommerce.JWT.JWTService;
+import com.ecommerce.ecommerce.DTO.TokenRequest;
 import com.ecommerce.ecommerce.Role.RoleRepository;
-import com.ecommerce.ecommerce.Token.Token;
-import com.ecommerce.ecommerce.Token.TokenRepository;
-import com.ecommerce.ecommerce.Token.TokenType;
 import com.ecommerce.ecommerce.User.User;
 import com.ecommerce.ecommerce.User.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.HashMap;
+import java.util.*;
 
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final PasswordEncoder passwordEncoder;
-    private final JWTService jwtService;
-    private final AuthenticationManager authenticationManager;
-    private final RoleRepository roleRepository;
+    private final CognitoIdentityProviderClient cognitoIdentityProviderClient;
     private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final GoogleIdTokenVerifier googleIdTokenVerifier;
+    private final RoleRepository roleRepository;
 
-    public AuthenticationResponse register(RegisterRequest request, Integer Role_id){
+    @Value("${application.security.cognito.clientID}")
+    private String clientID;
+
+    @Value("${application.security.cognito.poolID}")
+    private String userPoolId;
+
+
+    public User signUp(RegisterRequest request) {
+
         var user = User.builder()
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .password(passwordEncoder.encode(request.getPassword()))
                 .address(request.getAddress())
                 .phoneNumber(request.getPhoneNumber())
                 .bankAccount(request.getBankAccount())
-                .role(roleRepository.findByRoleId(Role_id).get())
+                .role(roleRepository.findByRoleId(request.getRoleID()).get())
                 .build();
 
-       var savedUser = userRepository.save(user);
+        var savedUser = userRepository.save(user);
 
-        var JwtToken = jwtService.generateToken(savedUser);
-        var refreshToken = jwtService.generateRefreshToken(savedUser);
-
-        saveUserToken(savedUser, JwtToken);
-
-        return AuthenticationResponse
-                .builder()
-                .accessToken(JwtToken)
-                .refreshToken(refreshToken)
+        AttributeType userAttrs = AttributeType.builder()
+                .name("email")
+                .value(request.getEmail())
                 .build();
-    }
 
-    public AuthenticationResponse googleAuth(GoogleAuthRequest request) throws GeneralSecurityException, IOException {
-        String idTokenRequest = request.getIdToken();
-
-            GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenRequest);
-            User user;
-
-            if (idToken != null) {
-                GoogleIdToken.Payload payload = idToken.getPayload();
-
-                user = userRepository.findByEmail(payload.getEmail()).orElseGet(() -> {
-                    var newUser = User.builder()
-                            .email(payload.getEmail())
-                            .firstName((String) payload.get("given_name"))
-                            .lastName((String) payload.get("family_name"))
-                            .password(passwordEncoder.encode("password"))
-                            .address(request.getAddress())
-                            .phoneNumber(request.getPhoneNumber())
-                            .bankAccount(request.getBankAccount())
-                            .role(roleRepository.findByRoleId(2).get())
-                            .build();
-
-                    return userRepository.save(newUser);
-                });
-
-            }else{
-                throw new RuntimeException("Invalid token");
-            }
-
-            var accessToken = jwtService.generateToken(user);
-            var refreshToken = jwtService.generateRefreshToken(user);
-            revokeAllUserTokens(user);
-            saveUserToken(user, accessToken);
-
-            return AuthenticationResponse
-                    .builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
+        List<AttributeType> userAttrsList = new ArrayList<>();
+        userAttrsList.add(userAttrs);
+        try {
+            SignUpRequest signUpRequest = SignUpRequest.builder()
+                    .userAttributes(userAttrsList)
+                    .username(request.getEmail())
+                    .clientId(clientID)
+                    .password(request.getPassword())
                     .build();
 
+            var result = cognitoIdentityProviderClient.signUp(signUpRequest);
 
+            return savedUser;
 
-    }
-
-    public AuthenticationResponse auth(AuthRequest request){
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword())
-        );
-
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow(
-                () -> new UsernameNotFoundException("User not found"));
-
-        var JwtToken = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-
-        revokeAllUserTokens(user);
-        saveUserToken(user, JwtToken);
-
-        return  AuthenticationResponse
-                .builder()
-                .accessToken(JwtToken)
-                .refreshToken(refreshToken)
-                .build();
-
-    }
-
-    private void saveUserToken(User user, String JwtToken) {
-        var token = Token.builder()
-                .user(user)
-                .token(JwtToken)
-                .tokenType(TokenType.BEARER)
-                .expired(false)
-                .expired(false)
-                .build();
-
-        tokenRepository.save(token);
-    }
-
-    private void revokeAllUserTokens(User user) {
-        var tokens = tokenRepository.findAllValidTokensByUser(user.getId());
-
-        if(tokens.isEmpty()) return;
-
-        tokens.forEach(token -> {
-            token.setRevoked(true);
-            token.setExpired(true);
-        });
-
-        tokenRepository.saveAll(tokens);
-    }
-
-
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String username;
-
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            return;
-        }
-
-        refreshToken = authHeader.substring(7);
-        username = jwtService.extractUsername(refreshToken);
-
-        if(username != null){
-            var user = this.userRepository.findByEmail(username).orElseThrow(
-                    () -> new UsernameNotFoundException("User not found")
-            );
-
-            if(jwtService.IsTokenValid(refreshToken, user)){
-                var accessToken = jwtService.generateToken(user);
-
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-
-                var authResponse = AuthenticationResponse.builder()
-                        .refreshToken(refreshToken)
-                        .accessToken(accessToken)
-                        .build();
-
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
-            }
+        } catch(CognitoIdentityProviderException e) {
+            throw new RuntimeException(e.awsErrorDetails().errorMessage());
         }
 
     }
+
+    public AuthenticationResponse initiateAuth(AuthRequest request) {
+        try {
+            Map<String,String> authParameters = new HashMap<>();
+            authParameters.put("USERNAME", request.getEmail());
+            authParameters.put("PASSWORD", request.getPassword());
+
+            AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder()
+                    .clientId(clientID)
+                    .userPoolId(userPoolId)
+                    .authParameters(authParameters)
+                    .authFlow(AuthFlowType.ADMIN_USER_PASSWORD_AUTH)
+                    .build();
+
+            AuthenticationResultType response = cognitoIdentityProviderClient.adminInitiateAuth(authRequest).authenticationResult();
+
+            return AuthenticationResponse.builder()
+                    .refreshToken(response.refreshToken())
+                    .accessToken(response.accessToken())
+                    .build();
+
+        } catch(CognitoIdentityProviderException e) {
+            throw new RuntimeException(e.awsErrorDetails().errorMessage());
+        }
+
+    }
+
+
+
 }

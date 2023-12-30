@@ -16,14 +16,6 @@ public class UserController {
 
     private final UserService userService;
 
-    @PatchMapping(path = "/change-password")
-    public ResponseEntity<?> changePassword(
-            @RequestBody ChangePasswordRequest request,
-            Principal connectedUser
-    ){
-        userService.changePassword(request, connectedUser);
-        return ResponseEntity.ok().body(Map.of("message", "Password changed successfully"));
-    }
 
     @PutMapping(path = "/update")
     public ResponseEntity<?> updateUser(

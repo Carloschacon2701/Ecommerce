@@ -1,8 +1,6 @@
 package com.ecommerce.ecommerce.User;
 import com.ecommerce.ecommerce.Cart.Cart;
 import com.ecommerce.ecommerce.Role.Role;
-import com.ecommerce.ecommerce.Token.Token;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,8 +30,6 @@ public class User  implements UserDetails {
 
     private String lastName;
 
-    private String password;
-
     private String address;
 
     private Integer phoneNumber;
@@ -43,11 +39,6 @@ public class User  implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
-
-    @OneToMany(mappedBy = "user")
-    @JsonManagedReference
-    private List<Token> tokens;
-
 
     @Override
     @Transient
@@ -60,8 +51,9 @@ public class User  implements UserDetails {
 
     @Override
     public String getPassword() {
-        return this.password;
+        return null;
     }
+
 
     @Override
     public String getUsername() {
