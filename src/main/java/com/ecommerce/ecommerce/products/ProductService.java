@@ -2,6 +2,8 @@ package com.ecommerce.ecommerce.products;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.ecommerce.ecommerce.DTO.ProductToAdd;
@@ -23,8 +25,8 @@ public class ProductService  {
         this.productRepository = productRepository;
     }
 
-    public List<Product> getAllProducts(){
-        return this.productRepository.findAll();
+    public Page<Product> getAllProducts(Pageable pageable){
+        return this.productRepository.findAll(pageable);
     }
 
     public Product addProduct(ProductToAdd product){
