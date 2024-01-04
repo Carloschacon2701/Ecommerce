@@ -27,10 +27,16 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getProducts(Pageable pageable){
-
+    public ResponseEntity<?> getProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double price,
+            @RequestParam(required = false) Integer providerId,
+            @PageableDefault(size = 5, page = 0)
+            Pageable pageable
+    ){
+        ProductQueryString queries = new ProductQueryString(name, price, providerId);
         return new ResponseEntity<>(
-                this.productService.getAllProducts(pageable),
+                this.productService.getAllProducts(queries, pageable),
                 HttpStatus.OK
         );
     }

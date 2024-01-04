@@ -18,15 +18,20 @@ import java.util.Optional;
 public class ProductService  {
 
     private final ProductRepository productRepository;
+    private final ProductDaoRepository productDaoRepository;
     private static final String UPLOAD_DIR =System.getProperty("user.dir") + "/src/main/resources/static/productImages/";
 
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, ProductDaoRepository productDaoRepository) {
         this.productRepository = productRepository;
+        this.productDaoRepository = productDaoRepository;
     }
 
-    public Page<Product> getAllProducts(Pageable pageable){
-        return this.productRepository.findAll(pageable);
+    public Page<Product> getAllProducts(
+            ProductQueryString queries,
+            Pageable pageable
+    ){
+        return this.productDaoRepository.findAllByQuery(queries, pageable);
     }
 
     public Product addProduct(ProductToAdd product){
