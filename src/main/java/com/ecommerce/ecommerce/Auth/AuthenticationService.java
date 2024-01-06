@@ -1,5 +1,6 @@
 package com.ecommerce.ecommerce.Auth;
 
+import com.ecommerce.ecommerce.AWS.CognitoService;
 import com.ecommerce.ecommerce.DTO.RegisterRequest;
 import com.ecommerce.ecommerce.DTO.TokenRequest;
 import com.ecommerce.ecommerce.Role.RoleRepository;
@@ -18,15 +19,9 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final CognitoIdentityProviderClient cognitoIdentityProviderClient;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-
-    @Value("${application.security.cognito.clientID}")
-    private String clientID;
-
-    @Value("${application.security.cognito.poolID}")
-    private String userPoolId;
+    private final CognitoService cognitoService;
 
 
     public User signUp(RegisterRequest request) {
@@ -43,54 +38,19 @@ public class AuthenticationService {
 
         var savedUser = userRepository.save(user);
 
-        AttributeType userAttrs = AttributeType.builder()
-                .name("email")
-                .value(request.getEmail())
-                .build();
+        cognitoService.CognitoSignUp(request.getEmail(), request.getPassword());
 
-        List<AttributeType> userAttrsList = new ArrayList<>();
-        userAttrsList.add(userAttrs);
-        try {
-            SignUpRequest signUpRequest = SignUpRequest.builder()
-                    .userAttributes(userAttrsList)
-                    .username(request.getEmail())
-                    .clientId(clientID)
-                    .password(request.getPassword())
-                    .build();
-
-            var result = cognitoIdentityProviderClient.signUp(signUpRequest);
-
-            return savedUser;
-
-        } catch(CognitoIdentityProviderException e) {
-            throw new RuntimeException(e.awsErrorDetails().errorMessage());
-        }
+       return savedUser;
 
     }
 
     public AuthenticationResponse initiateAuth(AuthRequest request) {
-        try {
-            Map<String,String> authParameters = new HashMap<>();
-            authParameters.put("USERNAME", request.getEmail());
-            authParameters.put("PASSWORD", request.getPassword());
+        AuthenticationResultType response = cognitoService.CognitoSignIn(request.getEmail(), request.getPassword());
 
-            AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder()
-                    .clientId(clientID)
-                    .userPoolId(userPoolId)
-                    .authParameters(authParameters)
-                    .authFlow(AuthFlowType.ADMIN_USER_PASSWORD_AUTH)
-                    .build();
-
-            AuthenticationResultType response = cognitoIdentityProviderClient.adminInitiateAuth(authRequest).authenticationResult();
-
-            return AuthenticationResponse.builder()
-                    .refreshToken(response.refreshToken())
-                    .accessToken(response.accessToken())
-                    .build();
-
-        } catch(CognitoIdentityProviderException e) {
-            throw new RuntimeException(e.awsErrorDetails().errorMessage());
-        }
+        return AuthenticationResponse.builder()
+                .refreshToken(response.refreshToken())
+                .accessToken(response.accessToken())
+                .build();
 
     }
 

@@ -1,6 +1,8 @@
 package com.ecommerce.ecommerce.products;
 
+import com.ecommerce.ecommerce.AWS.S3Service;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,19 +15,17 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService  {
 
+    private final S3Service s3Service;
     private final ProductRepository productRepository;
     private final ProductDaoRepository productDaoRepository;
     private static final String UPLOAD_DIR =System.getProperty("user.dir") + "/src/main/resources/static/productImages/";
 
-    @Autowired
-    public ProductService(ProductRepository productRepository, ProductDaoRepository productDaoRepository) {
-        this.productRepository = productRepository;
-        this.productDaoRepository = productDaoRepository;
-    }
 
     public Page<Product> getAllProducts(
             ProductQueryString queries,
@@ -51,7 +51,8 @@ public class ProductService  {
 
     @Transactional
     public String uploadProductImage(MultipartFile file, Integer id) throws Exception {
-        String FilePath = UPLOAD_DIR + "product_" + id + ".jpg";
+
+        String uuid = UUID.randomUUID().toString() + "." + file.getContentType().split("/")[1];
 
         ArrayList<String> allowedTypes = new ArrayList<>(
                 List.of("image/jpeg", "image/png", "image/jpg")
@@ -69,8 +70,9 @@ public class ProductService  {
             throw new Exception("Type " + file.getContentType() + " is not allowed");
         }
 
-        file.transferTo(new File(FilePath));
-        productOptional.setFilePath(FilePath);
+        s3Service.uploadFile(uuid, file.getBytes());
+
+        productOptional.setFilePath(uuid);
 
         return "Image uploaded successfully for product with id " + id;
     }
@@ -84,7 +86,8 @@ public class ProductService  {
         if (filePath == null || filePath.isEmpty()) {
             throw new RuntimeException("No image found for product with id " + id);
         }
-        return Files.readAllBytes(new File(filePath).toPath());
+
+        return s3Service.getFile(filePath);
     }
 
 }
